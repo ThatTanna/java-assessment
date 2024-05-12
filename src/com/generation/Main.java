@@ -40,12 +40,11 @@ public class Main {
                     showCoursesSummary(courseService, scanner);
                     break;
             }
-        }
-        while (option != 7);
+        } while (option != 7);
     }
 
     private static void enrollStudentToCourse(StudentService studentService, CourseService courseService,
-                                              Scanner scanner) {
+            Scanner scanner) {
         System.out.println("Insert student ID");
         String studentId = scanner.next();
         Student student = studentService.findStudent(studentId);
@@ -77,33 +76,52 @@ public class Main {
     }
 
     private static void gradeStudent(StudentService studentService, CourseService courseService, Scanner scanner) {
-        System.out.println("Insert student ID");
+        /*
+         * use findStudent (StudentService).
+         * if student is found, check against approvedCourses
+         * prompt user what course they want to grade (scanner)
+         * obtain course from courseService before grading. course exists within
+         * courseService.
+         * take the courseCode from the course, and compare if the student is attending
+         * course.
+         * if student.isAttendingCourse(courseCode) returns true (is found in
+         * approvedCourses)
+         * prompt user to enter grade
+         * else tell user course not found with the student
+         */
+        int grade = 0;
+        System.out.println("Insert student ID: ");
         String studentId = scanner.next();
         Student student = studentService.findStudent(studentId);
-        if (student == null) {
-            System.out.println("Invalid Student ID");
-            return;
-        }
-        System.out.println(student);
-        System.out.println("Insert course ID");
-        String courseId = scanner.next();
-        Course course = courseService.getCourse(courseId);
-        if (course == null) {
-            System.out.println("Invalid Course ID");
-            return;
-        }
-        System.out.println(course);
 
-        /*
-        use findStudent (StudentService).
-        if student is found, check against approvedCourses
-        prompt user what course they want to grade (scanner)
-        obtain course from courseService before grading. course exists within courseService.
-        take the courseCode from the course, and compare if the student is attending course.
-        if student.isAttendingCourse(courseCode) returns true (is found in approvedCourses)
-        prompt user to enter grade
-        else tell user course not found with the student
-        */
+        // If student is found
+        if (student != null) {
+            System.out.println("Grading: " + student + "\n");
+
+            // If student has enrolled into course(s)
+            if (!student.getApprovedCourses().isEmpty()) {
+                System.out.println("Course(s) enrolled:");
+                for (Course course : student.getApprovedCourses()) {
+                    System.out.println(course);
+                }
+                System.out.println("\nInsert course code to grade: ");
+                String courseCode = scanner.next();
+                Course course = courseService.getCourse(courseCode);
+
+                // If student is attending the course to be graded
+                if (studentService.isSubscribed(studentId) && student.isAttendingCourse(courseCode)) {
+
+                    // Do while loop that will loop if user enters a grade not withing 0-100
+                    do {
+                        System.out.println("Please enter grade (0-100): ");
+                        grade = scanner.nextInt();
+                    } while (grade < 0 || grade > 100);
+                } else {
+                    System.out.println("Student is not attending this course");
+                    return;
+                }
+            }
+        }
     }
 
     private static void findStudent(StudentService studentService, Scanner scanner) {
